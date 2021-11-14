@@ -59,7 +59,7 @@ class CampusWire():
 		}
 	"""
 
-
+	@functools.lru_cache(256)
 	def get_thread_comments(self, thread_id: str) -> List[CampusWireMessage]:
 		return [x for x in self._get_thread_comments(thread_id)]
 
@@ -74,6 +74,7 @@ class CampusWire():
 			print(e)
 
 
+	@functools.lru_cache(256)
 	def get_all_threads(self) -> List[CampusWireThread]:
 		return [x for x in self._paginate_threads()]
 
