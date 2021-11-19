@@ -7,8 +7,10 @@ setup(name='slackwire',
       requirements='requirements.txt',
       packages=find_packages(),
       include_package_data=True,
-      entry_points='''
-        [console_scripts]
-        slackwire=slackwire.cli:slackwire
-      '''
-     )
+      entry_points={
+          'console_scripts': [
+              'slackwire = slackwire.cli:slackwire',
+              'search = slackwire.cli:search',
+          ],
+      }
+      )
