@@ -1,9 +1,9 @@
 prefix = "."
 stop-words = "stopwords.txt"
 
-dataset = "dataset"
+dataset = "combined_dataset"
 corpus = "line.toml"
-index = "idx"
+index = "combineD_idx"
 
 [[analyzers]]
 method = "ngram-word"

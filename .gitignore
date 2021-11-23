@@ -1,4 +1,5 @@
-idx/
-dataset/
+slack_idx/
+campuswire_idx/
+combined_idx/
 *.egg-info
 slackwire/__pycache__/

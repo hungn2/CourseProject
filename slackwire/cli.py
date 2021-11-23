@@ -9,36 +9,34 @@ import time
 import metapy
 import pytoml
 
+@click.command()
+def retrieve_combined_data():
+    pass
 
 @click.command()
-def slackwire():
+def retrieve_slack_data():
     # retrieve documents from slack
     slack_client = slack.SlackClient()
     threads = slack_client.get_all_threads()
 
-    # ISSUES (when trying to retrieve replies for more than 50 threads)
-    # 1) get_thread_replies can't find some threads. Figure out root cause.
-    # 2) API is rate limited. Need to add pauses to account for this.
-    with safe_open_w("dataset/dataset.dat") as f:
-        for i in range(50):
+    num_threads = 50
+    with safe_open_w("slack_dataset/slack_dataset.dat") as f:
+        for i in range(num_threads):
             thread_replies = slack_client.get_thread_replies(
                 threads[i].thread_ts)
             if thread_replies:
                 contents = "THREAD: " + \
                     thread_replies[0].message.replace("\n", " ") + " "
                 for j in range(1, len(thread_replies)):
-                    contents += "REPLY #" + str(j) + ": " + \
+                    contents += "REPLY: " + \
                         thread_replies[j].message.replace("\n", " ") + " "
                 f.write(contents + "\n")
             else:
                 print(f'Thread {threads[i].thread_ts} could not be found')
 
-    with safe_open_w("dataset/dataset-full-corpus.txt") as a:
-        for path, subdirs, files in os.walk("dataset/threads"):
-            for filename in files:
-                f = str(path) + "/" + filename
-                a.write("[none] " + f + "\n")
-
+@click.command()
+def retrieve_campuswire_data():
+    pass
 
 def safe_open_w(path):
     ''' Open "path" for writing, creating any parent directories as needed.
@@ -47,55 +45,41 @@ def safe_open_w(path):
     return open(path, 'w')
 
 
-'''
 @click.command()
 @click.argument('query')
 @click.option('--only-slack',
               help='Search only slack for your query.')
 @click.option('--only-campuswire',
               help='Search only campuswire for your query.')
-'''
-
-
 def search(query: str, only_slack: bool, only_campuswire: bool):
     """Search Slack and/or Campuswire for specific topics."""
-    # Call main aggregation function here.
-    cfg = "config.toml"
-    print('Building or loading index...')
+    if only_slack:
+        cfg = "slack_config.toml"
+    elif only_campuswire:
+        cfg = "campuswire_config.toml"
+    else:
+        cfg = "combined_config.toml"
     idx = metapy.index.make_inverted_index(cfg)
 
-    ranker = metapy.index.OkapiBM25()
-    #ranker = metapy.index.JelinekMercer(0.5)
-    #ev = metapy.index.IREval(cfg)
+    # Print out information about corpus index
+    # print("num_docs = ", idx.num_docs())
+    # print("unique_terms = ", idx.unique_terms())
+    # print("avg_doc_length = ", idx.avg_doc_length())
+    # print("total_corpus_terms = ", idx.total_corpus_terms())
 
-    # ISSUES when using CLI:
-    # 1) Code breaks here (after setting ranker) for *some* queries (e.g. "surprise")
+    # Create Ranker
+    ranker = metapy.index.OkapiBM25()
 
     # Rank index based on query
     query_doc = metapy.index.Document()
     query_doc.content(query)
     results = ranker.score(idx, query_doc, 10)
 
-    # Collect relevant documents
-    relevant_docs = []
-    for result in results:
-        relevant_docs.append(result[0])
-
     # Print out relevant document contents
     print("\n*******Search Results*******\n")
-    with open("dataset/dataset.dat", "r") as f:
-        contents = f.readlines()
-        for relevant_doc in relevant_docs:
-            print(contents[relevant_doc].replace("REPLY #", "\nREPLY #"))
-
-    # ISSUES when using CLI:
-    # 1) Search results don't seem accurate for some queries (e.g. "probability")
-
+    for num, (d_id, _) in enumerate(results):
+        content = idx.metadata(d_id).get('content')
+        print("Doc ID: {}\n{}\n".format(d_id, content.replace("REPLY:","\nREPLY:")))
 
 if __name__ == '__main__':
-    # slackwire()
-
-    # "surprise" works when calling search directly without CLI
-    # Copy config.toml, /dataset/, /idx/, and stopwords.txt from root folder to slackwire folder
-    # to use search directly.
-    search("surprise", False, False)
+    retrieve_combined_data()
