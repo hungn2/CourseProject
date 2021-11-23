@@ -1,0 +1,4 @@
+idx/
+dataset/
+*.egg-info
+slackwire/__pycache__/
