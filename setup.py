@@ -13,6 +13,7 @@ setup(name='slackwire',
               'retrieve_slack_data = slackwire.cli:retrieve_slack_data',
               'retrieve_campuswire_data = slackwire.cli:retrieve_campuswire_data',
               'search = slackwire.cli:search',
+              'search_eval = slackwire.cli:search_eval',
           ],
       }
       )
