@@ -3,7 +3,7 @@ stop-words = "stopwords.txt"
 
 dataset = "combined_dataset"
 corpus = "line.toml"
-index = "combineD_idx"
+index = "combined_idx"
 
 [[analyzers]]
 method = "ngram-word"
