@@ -55,10 +55,13 @@ def search(query: str, only_slack: bool, only_campuswire: bool):
     """Search Slack and/or Campuswire for specific topics."""
     if only_slack:
         cfg = "slack_config.toml"
+        dataset = "slack_dataset"
     elif only_campuswire:
         cfg = "campuswire_config.toml"
+        dataset = "campuswire_dataset"
     else:
         cfg = "combined_config.toml"
+        dataset = "combined_dataset"
     idx = metapy.index.make_inverted_index(cfg)
 
     # Print out information about corpus index
@@ -75,11 +78,17 @@ def search(query: str, only_slack: bool, only_campuswire: bool):
     query_doc.content(query)
     results = ranker.score(idx, query_doc, 10)
 
+    # Collect relevant documents
+    relevant_docs = []
+    for result in results:
+        relevant_docs.append(result[0])
+
     # Print out relevant document contents
     print("\n*******Search Results*******\n")
-    for num, (d_id, _) in enumerate(results):
-        content = idx.metadata(d_id).get('content')
-        print("Doc ID: {}\n{}\n".format(d_id, content.replace("REPLY:","\nREPLY:")))
+    with open(f'{dataset}/{dataset}.dat', "r") as f:
+        contents = f.readlines()
+        for relevant_doc in relevant_docs:
+            print(contents[relevant_doc].replace("REPLY:", "\nREPLY:"))
 
 if __name__ == '__main__':
     retrieve_combined_data()
