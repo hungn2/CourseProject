@@ -1,6 +1,7 @@
 import slack_sdk
 import functools
 import os
+import time
 from dataclasses import dataclass
 
 from typing import Any, Optional, Generator, List
@@ -45,6 +46,7 @@ class SlackClient():
 
 			yield from messages
 			if response.get('ok') and response.get('has_more'):
+				time.sleep(1)
 				yield from self._get_thread_replies(thread_ts=next_cursor, cursor=next_cursor, limit=limit)
 		except Exception as e:
 			print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
@@ -71,6 +73,7 @@ class SlackClient():
 
 			yield from threads
 			if response.get('ok') and response.get('has_more'):
+				time.sleep(1)
 				next_cursor = response.get('response_metadata', {}).get('next_cursor')
 				yield from self._get_all_threads(cursor=next_cursor, limit=limit)
 		except Exception as e:
