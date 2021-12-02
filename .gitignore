@@ -1,5 +1,5 @@
-slack_idx/
-campuswire_idx/
-combined_idx/
+slackwire/slack_idx/
+slackwire/campuswire_idx/
+slackwire/combined_idx/
 *.egg-info
 slackwire/__pycache__/
