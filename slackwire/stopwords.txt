@@ -1,5 +1,10 @@
-thread:
-reply:
+thread
+reply
+endorsed
+votes
+[
+]
+:
 .
 ,
 ?

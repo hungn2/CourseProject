@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import functools
 
 from typing import Optional, List, Generator
 from dataclasses import dataclass
@@ -19,6 +20,9 @@ class CampusWireThread():
 	id: str
 	title: str
 
+	def __str__(self) -> str:
+		return "THREAD: " + self.title.replace("\n", " ") + " "
+
 @dataclass
 class CampusWireMessage():
 
@@ -27,13 +31,15 @@ class CampusWireMessage():
 	endorsed: bool
 	votes: int
 
+	def __str__(self) -> str:
+		return f'REPLY: [ENDORSED: {self.endorsed}, VOTES: {self.votes}]: ' + self.body.replace("\n", " ") + " "
+
 class CampusWire():
 
 	def __init__(self, cw_token: Optional[str] = None) -> None:
 		token = cw_token or os.environ.get('CAMPUSWIRE_TOKEN')
 		if not token:
 			print('No Campuswire Token found...')
-		assert cw_token
 		self.headers = {
 			'Authorization': f'Bearer {token}',
 			"Content-Type": "application/json",
