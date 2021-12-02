@@ -3,3 +3,4 @@ slack_sdk
 types-dataclasses
 requests==2.26.0
 metapy
+pandas

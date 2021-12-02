@@ -1,5 +1,6 @@
 import click
 from slackwire import slack
+from slackwire.deduplicate import deduplicate_docs
 import os
 import os.path
 
@@ -11,32 +12,49 @@ import pytoml
 
 @click.command()
 def retrieve_combined_data():
-    pass
+    slack_contents = _get_slack_data()
+    campuswire_contents = _get_campuswire_data()
 
-@click.command()
-def retrieve_slack_data():
-    # retrieve documents from slack
+    combined_docs = slack_contents + campuswire_contents
+
+    deduplicated_docs = deduplicate_docs(combined_docs)
+
+    with safe_open_w("combined_dataset/combined_dataset.dat") as f:
+        f.write('\n'.join(deduplicated_docs))
+
+
+def _get_campuswire_data():
+    # TODO
+    print('Retrieving campuswire data...')
+    return []
+
+def _get_slack_data():
+    print('Retrieving slack data...')
     slack_client = slack.SlackClient()
     threads = slack_client.get_all_threads()
 
-    num_threads = 50
+    slack_contents = []
+    for thread in threads:
+        contents = ''
+
+        thread_replies = slack_client.get_thread_replies(thread.thread_ts)
+        contents += str(thread)
+        for message in thread_replies:
+            contents += str(message)
+        slack_contents.append(contents)
+    return slack_contents
+
+
+@click.command()
+def retrieve_slack_data():
     with safe_open_w("slack_dataset/slack_dataset.dat") as f:
-        for i in range(num_threads):
-            thread_replies = slack_client.get_thread_replies(
-                threads[i].thread_ts)
-            if thread_replies:
-                contents = "THREAD: " + \
-                    thread_replies[0].message.replace("\n", " ") + " "
-                for j in range(1, len(thread_replies)):
-                    contents += "REPLY: " + \
-                        thread_replies[j].message.replace("\n", " ") + " "
-                f.write(contents + "\n")
-            else:
-                print(f'Thread {threads[i].thread_ts} could not be found')
+        f.write('\n'.join(_get_slack_data()))
+            
 
 @click.command()
 def retrieve_campuswire_data():
-    pass
+    with safe_open_w("campuswire_dataset/campuswire_dataset.dat") as f:
+        f.write('\n'.join(_get_campuswire_data()))
 
 def safe_open_w(path):
     ''' Open "path" for writing, creating any parent directories as needed.

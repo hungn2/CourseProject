@@ -14,11 +14,17 @@ class SlackThread():
 	thread_ts: str
 	message: str
 
+	def __str__(self) -> str:
+		return "THREAD: " + self.message.replace("\n", " ") + " "
+
 @dataclass
 class SlackMessage():
 	# Dataclass representing a Slackmessage..
 	ts: str
 	message: str
+
+	def __str__(self) -> str:
+		return "REPLY: " + self.message.replace("\n", " ") + " "
 
 
 class SlackClient():
@@ -40,17 +46,26 @@ class SlackClient():
 		try:
 			response = self.client.conversations_replies(channel=_SLACK_CHANNEL, ts=thread_ts, limit=limit,)
 
+			if response.get('error') == 'ratelimited':
+				print('Ratelimited, sleeping.')
+				time.sleep(respons.headers['Retry-After'])
+
 			next_cursor = response.get('response_metadata', {}).get('next_cursor')
 
 			messages = [SlackMessage(reply.get('ts'), reply.get('text')) for reply in response.get('messages') if reply.get('text')]
 
 			yield from messages
 			if response.get('ok') and response.get('has_more'):
-				time.sleep(1)
 				yield from self._get_thread_replies(thread_ts=next_cursor, cursor=next_cursor, limit=limit)
 		except Exception as e:
-			print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
-			print(e)
+			if 'ratelimited' in str(e):
+				wait_time = float(e.response.headers["Retry-After"]) + 1
+				print(f'Ratelimited.. waiting {wait_time}')
+				time.sleep(wait_time)
+				#yield from self._get_thread_replies(thread_ts, cursor, limit)
+			else:
+				print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
+				print(e)
 
 
 	@functools.lru_cache()
@@ -70,13 +85,17 @@ class SlackClient():
 			messages = response.get('messages')
 			threads = [SlackThread(message.get('thread_ts'), message.get('text')) for message in messages if message.get('thread_ts')]
 
-
 			yield from threads
 			if response.get('ok') and response.get('has_more'):
-				time.sleep(1)
 				next_cursor = response.get('response_metadata', {}).get('next_cursor')
-				yield from self._get_all_threads(cursor=next_cursor, limit=limit)
+				#yield from self._get_all_threads(cursor=next_cursor, limit=limit)
 		except Exception as e:
-			print('Oops, something went wrong fetching conversations from Slack...')
-			print(e)
+			if 'ratelimited' in str(e):
+				wait_time = float(e.response.headers["Retry-After"]) + 1
+				print(f'Ratelimited.. waiting {wait_time}')
+				time.sleep(wait_time)
+				yield from self._get_all_threads(cursor, limit)
+			else:
+				print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
+				print(e)
 
