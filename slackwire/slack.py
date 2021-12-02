@@ -62,7 +62,7 @@ class SlackClient():
 				wait_time = float(e.response.headers["Retry-After"]) + 1
 				print(f'Ratelimited.. waiting {wait_time}')
 				time.sleep(wait_time)
-				#yield from self._get_thread_replies(thread_ts, cursor, limit)
+				yield from self._get_thread_replies(thread_ts, cursor, limit)
 			else:
 				print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
 				print(e)
@@ -88,7 +88,7 @@ class SlackClient():
 			yield from threads
 			if response.get('ok') and response.get('has_more'):
 				next_cursor = response.get('response_metadata', {}).get('next_cursor')
-				#yield from self._get_all_threads(cursor=next_cursor, limit=limit)
+				yield from self._get_all_threads(cursor=next_cursor, limit=limit)
 		except Exception as e:
 			if 'ratelimited' in str(e):
 				wait_time = float(e.response.headers["Retry-After"]) + 1
