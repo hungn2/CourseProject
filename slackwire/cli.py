@@ -1,6 +1,6 @@
 import click
-from slackwire import slack
-from slackwire.deduplicate import deduplicate_docs
+from slackwire import slack, campuswire
+#from slackwire.deduplicate import deduplicate_docs
 import os
 import os.path
 
@@ -17,16 +17,26 @@ def retrieve_combined_data():
 
     combined_docs = slack_contents + campuswire_contents
 
-    deduplicated_docs = deduplicate_docs(combined_docs)
+    deduplicated_docs = combined_docs # deduplicate_docs(combined_docs)
 
     with safe_open_w("combined_dataset/combined_dataset.dat") as f:
         f.write('\n'.join(deduplicated_docs))
 
-
 def _get_campuswire_data():
-    # TODO
     print('Retrieving campuswire data...')
-    return []
+    campuswire_client = campuswire.CampusWire()
+    threads = campuswire_client.get_all_threads()
+
+    campuswire_contents = []
+    for thread in threads:
+        contents = ''
+
+        thread_replies = campuswire_client.get_thread_comments(thread.id)
+        contents += str(thread)
+        for message in thread_replies:
+            contents += str(message)
+        campuswire_contents.append(contents)
+    return campuswire_contents
 
 def _get_slack_data():
     print('Retrieving slack data...')
@@ -39,17 +49,15 @@ def _get_slack_data():
 
         thread_replies = slack_client.get_thread_replies(thread.thread_ts)
         contents += str(thread)
-        for message in thread_replies:
+        for message in thread_replies[1:]:
             contents += str(message)
         slack_contents.append(contents)
     return slack_contents
-
 
 @click.command()
 def retrieve_slack_data():
     with safe_open_w("slack_dataset/slack_dataset.dat") as f:
         f.write('\n'.join(_get_slack_data()))
-            
 
 @click.command()
 def retrieve_campuswire_data():
@@ -60,7 +68,7 @@ def safe_open_w(path):
     ''' Open "path" for writing, creating any parent directories as needed.
     '''
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    return open(path, 'w')
+    return open(path, 'w', encoding='utf-8')
 
 
 @click.command()
@@ -96,7 +104,7 @@ def search(query: str, only_slack: bool, only_campuswire: bool):
 
     # Print out relevant document contents
     print("\n*******Search Results*******\n")
-    with open(f'{dataset}/{dataset}.dat', "r") as f:
+    with open(f'{dataset}/{dataset}.dat', "r", encoding='utf-8') as f:
         contents = f.readlines()
         for relevant_doc in relevant_docs:
             print("DOC ID: " + str(relevant_doc) + "\n" + contents[relevant_doc].replace("REPLY:", "\nREPLY:"))

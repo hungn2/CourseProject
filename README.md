@@ -28,17 +28,19 @@ export SLACK_TOKEN=xoxb-65616187589-2720748576117-LjSOdyfZRP6a8vwp9GnFzNdw
 
 ## Commands
 
-1) To retrieve data from both CampusWire and Slack and store it locally (**TO BE IMPLEMENTED**):
+Run these commands while in the slackwire directory.
+
+1) To retrieve data from both CampusWire and Slack and store it locally:
 ```bash
 retrieve_combined_data
 ```
 
-2) To retrieve data from Slack only and store it locally (**CURRENTLY LIMITED BY API RATES: RETRIEVING 50 MOST RECENT THREADS ONLY**):
+2) To retrieve data from Slack only and store it locally:
 ```bash
 retrieve_slack_data
 ```
 
-3) To retrieve data from CampusWire only and store it locally (**TO BE IMPLEMENTED**):
+3) To retrieve data from CampusWire only and store it locally:
 ```bash
 retrieve_campuswire_data
 ```
