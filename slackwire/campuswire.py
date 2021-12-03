@@ -18,6 +18,7 @@ class CampusWireThread():
 
 	id: str
 	title: str
+	body: str
 
 @dataclass
 class CampusWireMessage():
@@ -86,7 +87,7 @@ class CampusWire():
 				url = f'{url}&before={before}'
 			response = json.loads(requests.get(url, headers=self.headers).content)
 
-			messages = [CampusWireThread(reply.get('id'), reply.get('title')) for reply in response]
+			messages = [CampusWireThread(reply.get('id'), reply.get('title'), reply.get('body')) for reply in response]
 
 			yield from messages
 
