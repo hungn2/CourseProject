@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import sys
 from contextlib import contextmanager
 from os import path
 from pathlib import Path
@@ -77,5 +78,9 @@ def get_dataset_paths(only_slack: bool, only_campuswire: bool) -> Tuple[str, str
     if only_campuswire:
         dir_path = CAMPUSWIRE_DIR
         dataset_name = CAMPUSWIRE_DATASET
+
+    if not os.path.exists(dataset_name):
+        print("Your dataset hasn't been initialized! Please run an initialize command, such as: slackwire initialize-combined")
+        sys.exit(1)
 
     return str(dir_path / 'config.toml'), str(dataset_name)
