@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import functools
+import logging
 
 from typing import Optional, List, Generator
 from dataclasses import dataclass
@@ -40,7 +41,7 @@ class CampusWire():
 	def __init__(self, cw_token: Optional[str] = None) -> None:
 		token = cw_token or os.environ.get('CAMPUSWIRE_TOKEN')
 		if not token:
-			print('No Campuswire Token found...')
+			logging.error('No Campuswire Token found...')
 		self.headers = {
 			'Authorization': f'Bearer {token}',
 			"Content-Type": "application/json",
@@ -77,8 +78,8 @@ class CampusWire():
 
 			yield from [CampusWireMessage(reply.get('id'), reply.get('body'), reply.get('endorsed'), reply.get('votesCount')) for reply in response]
 		except Exception as e:
-			print(f'Oops, something went wrong fetching thread details {thread_id} from CampusWire...')
-			print(e)
+			logging.debug(f'Oops, something went wrong fetching thread details {thread_id} from CampusWire...')
+			logging.debug(e)
 
 
 	@functools.lru_cache(256)
@@ -99,7 +100,7 @@ class CampusWire():
 
 			if len(messages):
 				last_message = min([reply['publishedAt'] for reply in response])
-				yield from self._paginate_threads(before=last_message)
+				#yield from self._paginate_threads(before=last_message)
 		except Exception as e:
-			print(f'Oops, something went wrong fetching threads from CampusWire..')
-			print(e)
+			logging.debug(f'Oops, something went wrong fetching threads from CampusWire..')
+			logging.debug(e)

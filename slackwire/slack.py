@@ -2,6 +2,7 @@ import slack_sdk
 import functools
 import os
 import time
+import logging
 from dataclasses import dataclass
 
 from typing import Any, Optional, Generator, List
@@ -29,10 +30,10 @@ class SlackMessage():
 
 class SlackClient():
 
-	def __init__(self, slack_token: Optional[str] = None):
+	def __init__(self, slack_token: Optional[str] = None) -> None:
 		token = slack_token or os.environ.get('SLACK_TOKEN')
 		if not token:
-			print('No Slack Token found...')
+			logging.error('No Slack Token found...')
 		self.client = slack_sdk.web.client.WebClient(token=token)
 
 	@functools.lru_cache(256)
@@ -41,14 +42,10 @@ class SlackClient():
 		return [reply for reply in self._get_thread_replies(thread_ts)]
 
 
-	def _get_thread_replies(self, thread_ts: str, cursor: str = None, limit=20) -> Generator[SlackMessage, None, None]:
+	def _get_thread_replies(self, thread_ts: str, cursor: Optional[str] = None, limit: int = 20) -> Generator[SlackMessage, None, None]:
 		# Recursive function to get all replies to a thread.
 		try:
 			response = self.client.conversations_replies(channel=_SLACK_CHANNEL, ts=thread_ts, limit=limit,)
-
-			if response.get('error') == 'ratelimited':
-				print('Ratelimited, sleeping.')
-				time.sleep(respons.headers['Retry-After'])
 
 			next_cursor = response.get('response_metadata', {}).get('next_cursor')
 
@@ -57,15 +54,15 @@ class SlackClient():
 			yield from messages
 			if response.get('ok') and response.get('has_more'):
 				yield from self._get_thread_replies(thread_ts=next_cursor, cursor=next_cursor, limit=limit)
-		except Exception as e:
+		except slack_sdk.errors.SlackApiError as e:
 			if 'ratelimited' in str(e):
 				wait_time = float(e.response.headers["Retry-After"]) + 1
-				print(f'Ratelimited.. waiting {wait_time}')
+				logging.debug(f'Ratelimited.. waiting {wait_time}')
 				time.sleep(wait_time)
 				yield from self._get_thread_replies(thread_ts, cursor, limit)
 			else:
-				print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
-				print(e)
+				logging.debug(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
+				logging.debug(e)
 
 
 	@functools.lru_cache()
@@ -74,7 +71,7 @@ class SlackClient():
 		return [x for x in self._get_all_threads()]
 
 
-	def _get_all_threads(self, cursor: str = None, limit: int = 200) -> Generator[SlackThread, None, None]:
+	def _get_all_threads(self, cursor: Optional[str] = None, limit: int = 200) -> Generator[SlackThread, None, None]:
 		# Recursive function to get all threads in the channel.
 		try:
 			response = self.client.conversations_history(
@@ -88,14 +85,14 @@ class SlackClient():
 			yield from threads
 			if response.get('ok') and response.get('has_more'):
 				next_cursor = response.get('response_metadata', {}).get('next_cursor')
-				yield from self._get_all_threads(cursor=next_cursor, limit=limit)
-		except Exception as e:
+				#yield from self._get_all_threads(cursor=next_cursor, limit=limit)
+		except slack_sdk.errors.SlackApiError as e:
 			if 'ratelimited' in str(e):
 				wait_time = float(e.response.headers["Retry-After"]) + 1
-				print(f'Ratelimited.. waiting {wait_time}')
+				logging.debug(f'Ratelimited.. waiting {wait_time}')
 				time.sleep(wait_time)
 				yield from self._get_all_threads(cursor, limit)
 			else:
-				print(f'Oops, something went wrong fetching thread details {thread_ts} from Slack...')
-				print(e)
+				logging.debug(f'Oops, something went wrong fetching threads from Slack...')
+				logging.debug(e)
 

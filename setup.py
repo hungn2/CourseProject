@@ -9,11 +9,7 @@ setup(name='slackwire',
       include_package_data=True,
       entry_points={
           'console_scripts': [
-              'retrieve_combined_data = slackwire.cli:retrieve_combined_data',
-              'retrieve_slack_data = slackwire.cli:retrieve_slack_data',
-              'retrieve_campuswire_data = slackwire.cli:retrieve_campuswire_data',
-              'search = slackwire.cli:search',
-              'search_eval = slackwire.cli:search_eval',
+              'slackwire= slackwire.cli:slackwire',
           ],
       }
       )

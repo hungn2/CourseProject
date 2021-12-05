@@ -1,93 +1,72 @@
 import click
-from slackwire import slack, campuswire
+from slackwire.datasets import retrieve_slack_dataset, retrieve_campuswire_dataset, write_dataset, SLACK_DATASET, CAMPUSWIRE_DATASET, COMBINED_DATASET, get_dataset_paths
 #from slackwire.deduplicate import deduplicate_docs
-import os
-import os.path
 
 import math
 import sys
 import time
 import metapy
 import pytoml
+import logging
 
-@click.command()
-def retrieve_combined_data():
-    slack_contents = _get_slack_data()
-    campuswire_contents = _get_campuswire_data()
+@click.group()
+@click.option('--very-verbose',
+              is_flag=True,
+              help='Print verbose log info. Only use for significant debugging.')
+@click.option('--verbose',
+              is_flag=True,
+              help='Print verbose log info. Only use for general debugging.')
+def slackwire(very_verbose: bool, verbose: bool) -> None:
+    if very_verbose:
+        logging.basicConfig(level=logging.DEBUG)
+        return
+    if verbose:
+        logging.basicConfig(level=logging.INFO)
+        return
+    logging.basicConfig(level=logging.ERROR)
 
+
+@slackwire.command(help='Initializes slack dataset.')
+def initialize_slack() -> None:
+    print('Initializing Slack...')
+    write_dataset(SLACK_DATASET, retrieve_slack_dataset())
+    print('Slack has been initialized.')
+
+
+@slackwire.command(help='Initializes campuswire dataset.')
+def initialize_campuswire() -> None:
+    print('Initializing Campuswire...')
+    write_dataset(CAMPUSWIRE_DATASET, retrieve_campuswire_dataset())
+    print('Campuswire has been initialized.')
+
+
+@slackwire.command(help='Initializes both slack and campuswire datasets.')
+def initialize_combined() -> None:
+    print('Initializing both Slack and Campuswire...')
+    slack_contents = retrieve_slack_dataset()
+    campuswire_contents = retrieve_campuswire_dataset()
+
+    write_dataset(SLACK_DATASET, slack_contents)
+    write_dataset(CAMPUSWIRE_DATASET, campuswire_contents)
     combined_docs = slack_contents + campuswire_contents
 
     deduplicated_docs = combined_docs # deduplicate_docs(combined_docs)
 
-    with safe_open_w("combined_dataset/combined_dataset.dat") as f:
-        f.write('\n'.join(deduplicated_docs))
-
-def _get_campuswire_data():
-    print('Retrieving campuswire data...')
-    campuswire_client = campuswire.CampusWire()
-    threads = campuswire_client.get_all_threads()
-
-    campuswire_contents = []
-    for thread in threads:
-        contents = ''
-
-        thread_replies = campuswire_client.get_thread_comments(thread.id)
-        contents += str(thread)
-        for message in thread_replies:
-            contents += str(message)
-        campuswire_contents.append(contents)
-    return campuswire_contents
-
-def _get_slack_data():
-    print('Retrieving slack data...')
-    slack_client = slack.SlackClient()
-    threads = slack_client.get_all_threads()
-
-    slack_contents = []
-    for thread in threads:
-        contents = ''
-
-        thread_replies = slack_client.get_thread_replies(thread.thread_ts)
-        contents += str(thread)
-        for message in thread_replies[1:]:
-            contents += str(message)
-        slack_contents.append(contents)
-    return slack_contents
-
-@click.command()
-def retrieve_slack_data():
-    with safe_open_w("slack_dataset/slack_dataset.dat") as f:
-        f.write('\n'.join(_get_slack_data()))
-
-@click.command()
-def retrieve_campuswire_data():
-    with safe_open_w("campuswire_dataset/campuswire_dataset.dat") as f:
-        f.write('\n'.join(_get_campuswire_data()))
-
-def safe_open_w(path):
-    ''' Open "path" for writing, creating any parent directories as needed.
-    '''
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    return open(path, 'w', encoding='utf-8')
+    write_dataset(COMBINED_DATASET, deduplicated_docs)
+    print('Both Slack and Campuswire have been initialized.')
 
 
-@click.command()
-@click.argument('query')
+@slackwire.command(help='Query for information from Slack and/or Campuswire.')
 @click.option('--only-slack',
+              is_flag=True,
               help='Search only slack for your query.')
 @click.option('--only-campuswire',
+              is_flag=True,
               help='Search only campuswire for your query.')
-def search(query: str, only_slack: bool, only_campuswire: bool):
+def search(only_slack: bool, only_campuswire: bool) -> None:
     """Search Slack and/or Campuswire for specific topics."""
-    if only_slack:
-        cfg = "slack_config.toml"
-        dataset = "slack_dataset"
-    elif only_campuswire:
-        cfg = "campuswire_config.toml"
-        dataset = "campuswire_dataset"
-    else:
-        cfg = "combined_config.toml"
-        dataset = "combined_dataset"
+    query = click.prompt('Enter your query', type=str)
+    cfg, dataset = get_dataset_paths(only_slack, only_campuswire)
 
     idx = metapy.index.make_inverted_index(cfg)
     ranker = metapy.index.OkapiBM25()
@@ -104,24 +83,21 @@ def search(query: str, only_slack: bool, only_campuswire: bool):
 
     # Print out relevant document contents
     print("\n*******Search Results*******\n")
-    with open(f'{dataset}/{dataset}.dat', "r", encoding='utf-8') as f:
+    with open(dataset, "r", encoding='utf-8') as f:
         contents = f.readlines()
         for relevant_doc in relevant_docs:
             print("DOC ID: " + str(relevant_doc) + "\n" + contents[relevant_doc].replace("REPLY:", "\nREPLY:"))
 
-@click.command()
+@slackwire.command(help='Evaluate queries in Slack and/or Campuswire.')
 @click.option('--only-slack',
+              is_flag=True,
               help='Search only slack for your query.')
 @click.option('--only-campuswire',
+              is_flag=True,
               help='Search only campuswire for your query.')
-def search_eval(only_slack: bool, only_campuswire: bool):
+def search_eval(only_slack: bool, only_campuswire: bool) -> None:
     """Evaluate queries in Slack and/or Campuswire for IR evaluation."""
-    if only_slack:
-        cfg = "slack_config.toml"
-    elif only_campuswire:
-        cfg = "campuswire_config.toml"
-    else:
-        cfg = "combined_config.toml"
+    cfg, _ = get_dataset_paths(only_slack, only_campuswire)
 
     idx = metapy.index.make_inverted_index(cfg)
     ranker = metapy.index.OkapiBM25()
@@ -144,7 +120,7 @@ def search_eval(only_slack: bool, only_campuswire: bool):
     ndcg = 0.0
     num_queries = 0
 
-    print('Running queries')
+    logging.info('Running queries')
     with open(query_path) as query_file:
         for query_num, line in enumerate(query_file):
             query.content(line.strip())
@@ -153,8 +129,8 @@ def search_eval(only_slack: bool, only_campuswire: bool):
             num_queries+=1
     ndcg= ndcg / num_queries
             
-    print("NDCG@{}: {}".format(top_k, ndcg))
-    print("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
+    logging.info("NDCG@{}: {}".format(top_k, ndcg))
+    logging.info("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
 
 if __name__ == '__main__':
-    retrieve_combined_data()
+    initialize_combined()

@@ -1,0 +1,17 @@
+prefix = "./slackwire/datasets"
+stop-words = "./slackwire/datasets/stopwords.txt"
+
+dataset = "slack"
+corpus = "line.toml"
+index = "idx"
+
+query-judgements = "qrels.txt"
+
+[[analyzers]]
+method = "ngram-word"
+ngram = 1
+filter = "default-unigram-chain"
+
+[query-runner]
+query-path = "queries.txt"
+query-id-start = 1

@@ -28,33 +28,44 @@ export SLACK_TOKEN=xoxb-65616187589-2720748576117-LjSOdyfZRP6a8vwp9GnFzNdw
 
 ## Commands
 
-Run these commands while in the slackwire directory.
+The entrypoint for all commands is *slackwire*.
+You can print out help messages for general command info via:
+```bash
+slackwire --help
+```
+
+Below is a list of commands you can execute with Slackwire:
+
+
 
 1) To retrieve data from both CampusWire and Slack and store it locally:
 ```bash
-retrieve_combined_data
+slackwire initialize_combined
 ```
 
 2) To retrieve data from Slack only and store it locally:
 ```bash
-retrieve_slack_data
+slackwire initialize_slack
 ```
 
 3) To retrieve data from CampusWire only and store it locally:
 ```bash
-retrieve_campuswire_data
+slackwire initialize_campuswire
 ```
 
 4) To query for relevant threads in both databases, the Slack database only, or the CampusWire database only:
 ```bash
-search "your query here"
-search "your query here" --only-slack=true
-search "your query here" --only-campuswire=true
+slackwire search
+slackwire search --only-slack
+slackwire search --only-campuswire
 ```
+
+You will then be prompted for your query.
+
 
 5) To evaluate queries based on the *queries.txt and *qrels.txt files:
 ```bash
-search_eval
-search_eval --only-slack=true
-search_eval --only-campuswire=true
+slackwire search_eval
+slackwire search_eval --only-slack
+slackwire search_eval --only-campuswire
 ```

@@ -1,4 +1,5 @@
 import pandas as pd
+import logging
 
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabaz_score
 from sklearn.cluster import KMeans
@@ -6,16 +7,16 @@ from sklearn.cluster import DBSCAN
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import AgglomerativeClustering
-from typing import List, Set
+from typing import List, Set, cast
 
 
 def _get_alphabet(documents: List[str]) -> Set[str]:
-	print('Constructing an alphabet given our documents...')
+	logging.info('Constructing an alphabet given our documents...')
 	return set([word for doc in documents for word in doc.split(' ')])
 
 
 def _encode_documents(documents: List[str]) -> pd.DataFrame:
-	print('Encoding documents...')
+	logging.info('Encoding documents...')
 	alphabet = _get_alphabet(documents)
 	doc_word_counts = []
 
@@ -31,7 +32,7 @@ def _encode_documents(documents: List[str]) -> pd.DataFrame:
 
 
 def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
-	print('Determing the best cluster...')
+	logging.info('Determing the best cluster...')
 	sse = {}
 	n_cluster_start = max(int(len(documents) / 100), 2)
 	n_cluster_end = max(int(len(documents) / 10), 3)
@@ -43,15 +44,15 @@ def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
 	    label = kmeans.labels_
 	    sil_coeff = silhouette_score(documents, label, metric='euclidean')
 	    chs = calinski_harabaz_score(documents, label)
-	    print("For k={}, The Silhouette Coefficient is {}, {}".format(k, sil_coeff, chs))
+	    logging.debug("For k={}, The Silhouette Coefficient is {}, {}".format(k, sil_coeff, chs))
 	    sse[k] = sil_coeff
 
-	best_n_clusters = max(sse, key=sse.get)
+	best_n_clusters = max(sse, key=sse.get)  # type: ignore
 
 	kmeans = AgglomerativeClustering(n_clusters=best_n_clusters, linkage="ward").fit(documents)
 
 	labels = kmeans.labels_
-	return kmeans.labels_
+	return cast(List[int], kmeans.labels_)
 
 
 def deduplicate_docs(documents: List[str]) -> List[str]:
