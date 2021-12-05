@@ -105,7 +105,7 @@ class CampusWire():
             if len(messages):
                 last_message = min([reply['publishedAt']
                                    for reply in response])
-                # yield from self._paginate_threads(before=last_message)
+                yield from self._paginate_threads(before=last_message)
         except Exception as e:
             logging.debug(
                 f'Oops, something went wrong fetching threads from CampusWire..')

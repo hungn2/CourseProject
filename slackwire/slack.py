@@ -90,7 +90,7 @@ class SlackClient():
             if response.get('ok') and response.get('has_more'):
                 next_cursor = response.get(
                     'response_metadata', {}).get('next_cursor')
-                # yield from self._get_all_threads(cursor=next_cursor, limit=limit)
+                yield from self._get_all_threads(cursor=next_cursor, limit=limit)
         except slack_sdk.errors.SlackApiError as e:
             if 'ratelimited' in str(e):
                 wait_time = float(e.response.headers['Retry-After']) + 1
