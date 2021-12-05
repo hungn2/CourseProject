@@ -1,11 +1,11 @@
-import requests
-import os
-import json
 import functools
+import json
 import logging
-
-from typing import Optional, List, Generator
+import os
 from dataclasses import dataclass
+from typing import Generator, List, Optional
+
+import requests
 
 _CAMPUSWIRE_BASE = 'https://api.campuswire.com/v1'
 _CAMPUSWIRE_CHANNEL = '0a3aa370-c917-4993-b5cf-4e06585e7704'
@@ -15,40 +15,43 @@ _CAMPUSWIRE_AUTH = f'{_CAMPUSWIRE_BASE}/auth/login'
 
 _PAGE_SIZE = 20
 
+
 @dataclass
 class CampusWireThread():
 
-	id: str
-	title: str
-	body: str
+    id: str
+    title: str
+    body: str
 
-	def __str__(self) -> str:
-		return "THREAD: " + self.title.replace("\n", " ") + " "
+    def __str__(self) -> str:
+        return "THREAD: " + self.title.replace("\n", " ") + " "
+
 
 @dataclass
 class CampusWireMessage():
 
-	id: str
-	body: str
-	endorsed: bool
-	votes: int
+    id: str
+    body: str
+    endorsed: bool
+    votes: int
 
-	def __str__(self) -> str:
-		return f'REPLY: [ENDORSED: {self.endorsed}, VOTES: {self.votes}]: ' + self.body.replace("\n", " ") + " "
+    def __str__(self) -> str:
+        return f'REPLY: [ENDORSED: {self.endorsed}, VOTES: {self.votes}]: ' + self.body.replace("\n", " ") + " "
+
 
 class CampusWire():
 
-	def __init__(self, cw_token: Optional[str] = None) -> None:
-		token = cw_token or os.environ.get('CAMPUSWIRE_TOKEN')
-		if not token:
-			logging.error('No Campuswire Token found...')
-		self.headers = {
-			'Authorization': f'Bearer {token}',
-			"Content-Type": "application/json",
+    def __init__(self, cw_token: Optional[str] = None) -> None:
+        token = cw_token or os.environ.get('CAMPUSWIRE_TOKEN')
+        if not token:
+            logging.error('No Campuswire Token found...')
+        self.headers = {
+            'Authorization': f'Bearer {token}',
+            "Content-Type": "application/json",
 
-		}
+        }
 
-	"""
+    """
 	def authenticate(self, cw_token: str) -> None:
 		response = requests.post(_CAMPUSWIRE_AUTH, headers={
 	        "authorization": "Bearer " +  cw_token,
@@ -67,40 +70,43 @@ class CampusWire():
 		}
 	"""
 
-	@functools.lru_cache(256)
-	def get_thread_comments(self, thread_id: str) -> List[CampusWireMessage]:
-		return [x for x in self._get_thread_comments(thread_id)]
+    @functools.lru_cache(256)
+    def get_thread_comments(self, thread_id: str) -> List[CampusWireMessage]:
+        return [x for x in self._get_thread_comments(thread_id)]
 
+    def _get_thread_comments(self, thread_id: str) -> Generator[CampusWireMessage, None, None]:
+        try:
+            response = json.loads(requests.get(
+                f'{_POSTS_URL}/{thread_id}/comments', headers=self.headers).content)
 
-	def _get_thread_comments(self, thread_id: str) -> Generator[CampusWireMessage, None, None]:
-		try:
-			response = json.loads(requests.get(f'{_POSTS_URL}/{thread_id}/comments', headers=self.headers).content)
+            yield from [CampusWireMessage(reply.get('id'), reply.get('body'), reply.get('endorsed'), reply.get('votesCount')) for reply in response]
+        except Exception as e:
+            logging.debug(
+                f'Oops, something went wrong fetching thread details {thread_id} from CampusWire...')
+            logging.debug(e)
 
-			yield from [CampusWireMessage(reply.get('id'), reply.get('body'), reply.get('endorsed'), reply.get('votesCount')) for reply in response]
-		except Exception as e:
-			logging.debug(f'Oops, something went wrong fetching thread details {thread_id} from CampusWire...')
-			logging.debug(e)
+    @functools.lru_cache(256)
+    def get_all_threads(self) -> List[CampusWireThread]:
+        return [x for x in self._paginate_threads()]
 
+    def _paginate_threads(self, before: Optional[str] = None) -> Generator[CampusWireThread, None, None]:
+        try:
+            url = f'{_POSTS_URL}?number={_PAGE_SIZE}'
+            if before:
+                url = f'{url}&before={before}'
+            response = json.loads(requests.get(
+                url, headers=self.headers).content)
 
-	@functools.lru_cache(256)
-	def get_all_threads(self) -> List[CampusWireThread]:
-		return [x for x in self._paginate_threads()]
+            messages = [CampusWireThread(reply.get('id'), reply.get(
+                'title'), reply.get('body')) for reply in response]
 
+            yield from messages
 
-	def _paginate_threads(self, before: Optional[str] = None) -> Generator[CampusWireThread, None, None]:
-		try:
-			url = f'{_POSTS_URL}?number={_PAGE_SIZE}'
-			if before:
-				url = f'{url}&before={before}'
-			response = json.loads(requests.get(url, headers=self.headers).content)
-
-			messages = [CampusWireThread(reply.get('id'), reply.get('title'), reply.get('body')) for reply in response]
-
-			yield from messages
-
-			if len(messages):
-				last_message = min([reply['publishedAt'] for reply in response])
-				#yield from self._paginate_threads(before=last_message)
-		except Exception as e:
-			logging.debug(f'Oops, something went wrong fetching threads from CampusWire..')
-			logging.debug(e)
+            if len(messages):
+                last_message = min([reply['publishedAt']
+                                   for reply in response])
+                # yield from self._paginate_threads(before=last_message)
+        except Exception as e:
+            logging.debug(
+                f'Oops, something went wrong fetching threads from CampusWire..')
+            logging.debug(e)

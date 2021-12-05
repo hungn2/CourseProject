@@ -1,12 +1,12 @@
+import logging
 import os
 import pathlib
-from os import path
-import logging
-from pathlib import Path
-from slackwire import slack, campuswire
 from contextlib import contextmanager
+from os import path
+from pathlib import Path
+from typing import Generator, List, TextIO, Tuple, Union
 
-from typing import List, Tuple, Generator, TextIO, Union
+from slackwire import campuswire, slack
 
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
 DATASETS_DIR = CURRENT_DIR / 'datasets'
@@ -18,11 +18,13 @@ SLACK_DATASET = SLACK_DIR / 'slack.dat'
 CAMPUSWIRE_DATASET = CAMPUSWIRE_DIR / 'campuswire.dat'
 COMBINED_DATASET = COMBINED_DIR / 'combined.dat'
 
+
 @contextmanager
 def _safe_open_w(path: Union[Path, str]) -> Generator[TextIO, None, None]:
     ''' Open "path" for writing, creating any parent directories as needed.'''
     os.makedirs(os.path.dirname(path), exist_ok=True)
     yield open(path, 'w', encoding='utf-8')
+
 
 def write_dataset(path: Union[Path, str], dataset: List[str]) -> None:
     if os.path.exists(path):
@@ -30,6 +32,7 @@ def write_dataset(path: Union[Path, str], dataset: List[str]) -> None:
         os.remove(path)
     with _safe_open_w(path) as f:
         f.write('\n'.join(dataset))
+
 
 def retrieve_slack_dataset() -> List[str]:
     logging.info('Retrieving slack data...')
@@ -47,6 +50,7 @@ def retrieve_slack_dataset() -> List[str]:
         slack_contents.append(contents)
     return slack_contents
 
+
 def retrieve_campuswire_dataset() -> List[str]:
     logging.info('Retrieving campuswire data...')
     campuswire_client = campuswire.CampusWire()
@@ -62,6 +66,7 @@ def retrieve_campuswire_dataset() -> List[str]:
             contents += str(message)
         campuswire_contents.append(contents)
     return campuswire_contents
+
 
 def get_dataset_paths(only_slack: bool, only_campuswire: bool) -> Tuple[str, str]:
     dir_path = COMBINED_DIR
