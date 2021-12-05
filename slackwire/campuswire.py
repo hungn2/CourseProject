@@ -24,7 +24,7 @@ class CampusWireThread():
     body: str
 
     def __str__(self) -> str:
-        return "THREAD: " + self.title.replace("\n", " ") + " "
+        return 'THREAD: ' + self.title.replace('\n', ' ') + ' '
 
 
 @dataclass
@@ -36,7 +36,7 @@ class CampusWireMessage():
     votes: int
 
     def __str__(self) -> str:
-        return f'REPLY: [ENDORSED: {self.endorsed}, VOTES: {self.votes}]: ' + self.body.replace("\n", " ") + " "
+        return f'REPLY: [ENDORSED: {self.endorsed}, VOTES: {self.votes}]: ' + self.body.replace('\n', ' ') + ' '
 
 
 class CampusWire():
@@ -47,7 +47,7 @@ class CampusWire():
             logging.error('No Campuswire Token found...')
         self.headers = {
             'Authorization': f'Bearer {token}',
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
 
         }
 

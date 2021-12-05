@@ -38,19 +38,19 @@ def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
     for k in range(n_cluster_start, n_cluster_end):
         #kmeans = KMeans(n_clusters=k, max_iter=9000).fit(documents)
         kmeans = AgglomerativeClustering(
-            n_clusters=k, linkage="ward").fit(documents)
+            n_clusters=k, linkage='ward').fit(documents)
         #kmeans = GaussianMixture(n_components=7).fit_predict(documents)
         label = kmeans.labels_
         sil_coeff = silhouette_score(documents, label, metric='euclidean')
         chs = calinski_harabaz_score(documents, label)
         logging.debug(
-            "For k={}, The Silhouette Coefficient is {}, {}".format(k, sil_coeff, chs))
+            'For k={}, The Silhouette Coefficient is {}, {}'.format(k, sil_coeff, chs))
         sse[k] = sil_coeff
 
     best_n_clusters = max(sse, key=sse.get)  # type: ignore
 
     kmeans = AgglomerativeClustering(
-        n_clusters=best_n_clusters, linkage="ward").fit(documents)
+        n_clusters=best_n_clusters, linkage='ward').fit(documents)
 
     labels = kmeans.labels_
     return cast(List[int], kmeans.labels_)

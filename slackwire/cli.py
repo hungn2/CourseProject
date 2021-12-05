@@ -88,12 +88,12 @@ def search(only_slack: bool, only_campuswire: bool) -> None:
         relevant_docs.append(result[0])
 
     # Print out relevant document contents
-    print("\n*******Search Results*******\n")
-    with open(dataset, "r", encoding='utf-8') as f:
+    print('\n*******Search Results*******\n')
+    with open(dataset, 'r', encoding='utf-8') as f:
         contents = f.readlines()
         for relevant_doc in relevant_docs:
-            print("DOC ID: " + str(relevant_doc) + "\n" +
-                  contents[relevant_doc].replace("REPLY:", "\nREPLY:"))
+            print('DOC ID: ' + str(relevant_doc) + '\n' +
+                  contents[relevant_doc].replace('REPLY:', '\nREPLY:'))
 
 
 @slackwire.command(help='Evaluate queries in Slack and/or Campuswire.')
@@ -116,7 +116,7 @@ def search_eval(only_slack: bool, only_campuswire: bool) -> None:
 
     query_cfg = cfg_d['query-runner']
     if query_cfg is None:
-        print("query-runner table needed in {}".format(cfg))
+        print('query-runner table needed in {}'.format(cfg))
         sys.exit(1)
 
     start_time = time.time()
@@ -137,8 +137,8 @@ def search_eval(only_slack: bool, only_campuswire: bool) -> None:
             num_queries += 1
     ndcg = ndcg / num_queries
 
-    logging.info("NDCG@{}: {}".format(top_k, ndcg))
-    logging.info("Elapsed: {} seconds".format(
+    logging.info('NDCG@{}: {}'.format(top_k, ndcg))
+    logging.info('Elapsed: {} seconds'.format(
         round(time.time() - start_time, 4)))
 
 

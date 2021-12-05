@@ -17,7 +17,7 @@ class SlackThread():
     message: str
 
     def __str__(self) -> str:
-        return "THREAD: " + self.message.replace("\n", " ") + " "
+        return 'THREAD: ' + self.message.replace('\n', ' ') + ' '
 
 
 @dataclass
@@ -27,7 +27,7 @@ class SlackMessage():
     message: str
 
     def __str__(self) -> str:
-        return "REPLY: " + self.message.replace("\n", " ") + " "
+        return 'REPLY: ' + self.message.replace('\n', ' ') + ' '
 
 
 class SlackClient():
@@ -60,7 +60,7 @@ class SlackClient():
                 yield from self._get_thread_replies(thread_ts=next_cursor, cursor=next_cursor, limit=limit)
         except slack_sdk.errors.SlackApiError as e:
             if 'ratelimited' in str(e):
-                wait_time = float(e.response.headers["Retry-After"]) + 1
+                wait_time = float(e.response.headers['Retry-After']) + 1
                 logging.debug(f'Ratelimited.. waiting {wait_time}')
                 time.sleep(wait_time)
                 yield from self._get_thread_replies(thread_ts, cursor, limit)
@@ -93,7 +93,7 @@ class SlackClient():
                 # yield from self._get_all_threads(cursor=next_cursor, limit=limit)
         except slack_sdk.errors.SlackApiError as e:
             if 'ratelimited' in str(e):
-                wait_time = float(e.response.headers["Retry-After"]) + 1
+                wait_time = float(e.response.headers['Retry-After']) + 1
                 logging.debug(f'Ratelimited.. waiting {wait_time}')
                 time.sleep(wait_time)
                 yield from self._get_all_threads(cursor, limit)
