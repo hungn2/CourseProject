@@ -2,6 +2,7 @@ import functools
 import logging
 import os
 import time
+import sys
 from dataclasses import dataclass
 from typing import Any, Generator, List, Optional
 
@@ -35,7 +36,8 @@ class SlackClient():
     def __init__(self, slack_token: Optional[str] = None) -> None:
         token = slack_token or os.environ.get('SLACK_TOKEN')
         if not token:
-            logging.error('No Slack Token found...')
+            print('No Slack Token found. Please set a Slack Token (see README).')
+            sys.exit(1)
         self.client = slack_sdk.web.client.WebClient(token=token)
 
     @functools.lru_cache(256)

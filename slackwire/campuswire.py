@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 import os
+import sys
 from dataclasses import dataclass
 from typing import Generator, List, Optional
 
@@ -44,7 +45,8 @@ class CampusWire():
     def __init__(self, cw_token: Optional[str] = None) -> None:
         token = cw_token or os.environ.get('CAMPUSWIRE_TOKEN')
         if not token:
-            logging.error('No Campuswire Token found...')
+            print('No Campuswire Token found. Please set a campuswire token (see README).')
+            sys.exit(1)
         self.headers = {
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json',
