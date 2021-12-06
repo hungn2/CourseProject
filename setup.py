@@ -7,6 +7,7 @@ setup(name='slackwire',
       requirements='requirements.txt',
       packages=find_packages(),
       include_package_data=True,
+      package_data={'': ['datasets/*','datasets/campuswire/*','datasets/slack/*','datasets/combined/*']},
       entry_points={
           'console_scripts': [
               'slackwire= slackwire.cli:slackwire',
