@@ -3,7 +3,7 @@ from typing import List, Set, cast
 
 import pandas as pd
 from sklearn.cluster import DBSCAN, AgglomerativeClustering, KMeans
-from sklearn.metrics import (calinski_harabaz_score, davies_bouldin_score,
+from sklearn.metrics import (calinski_harabasz_score, davies_bouldin_score,
                              silhouette_score)
 from sklearn.mixture import GaussianMixture
 
@@ -42,7 +42,7 @@ def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
         #kmeans = GaussianMixture(n_components=7).fit_predict(documents)
         label = kmeans.labels_
         sil_coeff = silhouette_score(documents, label, metric='euclidean')
-        chs = calinski_harabaz_score(documents, label)
+        chs = calinski_harabasz_score(documents, label)
         logging.debug(
             'For k={}, The Silhouette Coefficient is {}, {}'.format(k, sil_coeff, chs))
         sse[k] = sil_coeff
