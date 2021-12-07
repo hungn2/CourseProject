@@ -39,7 +39,7 @@ def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
     for k in range(n_cluster_start, n_cluster_end):
         #kmeans = KMeans(n_clusters=k, max_iter=9000).fit(documents)
         clusters = AgglomerativeClustering(
-            n_clusters=k, linkage='average').fit(documents)
+            n_clusters=k, affinity='cosine', linkage='average').fit(documents)
         #kmeans = GaussianMixture(n_components=7).fit_predict(documents)
         label = clusters.labels_
         sil_coeff = silhouette_score(documents, label, metric='euclidean')
@@ -47,12 +47,12 @@ def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
         logging.debug(
             'For k={}, The SC and CHS is {}, {}'.format(k, sil_coeff, chs))
         if sil_coeff > 0:
-            metrics[k] = chs
+            metrics[k] = sil_coeff
 
     best_n_clusters = max(metrics, key=metrics.get)  # type: ignore
     logging.info(f'Best K is {best_n_clusters} with {metrics[best_n_clusters]}')
     clusters = AgglomerativeClustering(
-        n_clusters=best_n_clusters, linkage='average').fit(documents)
+        n_clusters=best_n_clusters, affinity='cosine', linkage='average').fit(documents)
 
     labels = clusters.labels_
     return cast(List[int], labels)
