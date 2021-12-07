@@ -50,7 +50,7 @@ def initialize_combined() -> None:
     write_dataset(CAMPUSWIRE_DATASET, campuswire_contents)
     combined_docs = slack_contents + campuswire_contents
 
-    deduplicated_docs = combined_docs # deduplicate_docs(combined_docs)
+    deduplicated_docs = deduplicate_docs(combined_docs)
 
     write_dataset(COMBINED_DATASET, deduplicated_docs)
     print('Both Slack and Campuswire have been initialized.')

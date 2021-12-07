@@ -21,9 +21,16 @@ To setup CampusWire API access, open a browser and navigate to CampusWire. Open 
 export CAMPUSWIRE_TOKEN=<the_long_string>
 ```
 
-To setup Slack API access, run the following command (which will use a Slackwire bot account):
+To setup Slack API access, you will need to create an app integration.
+Go to this link: https://api.slack.com/authentication/basics
+And select 'Create a new slack app', then 'create a new app'.
+A menu will pop up, select 'From scratch'. Then select the UIUC MCS workspace for 'Pick a workspace to develop your app in:'.
+
+Now that your App has been created, click on "Oauth and Permissions" on the left.
+Under 'User Token Scopes', add a new Oauth Scope *channels:history*.
+Scroll to the top of the 'Oauth and Permissions' page and select "Install to workspace" and hit allow. You will then see a "User OAuth Token". Copy this token.
 ```bash
-export SLACK_TOKEN=xoxb-65616187589-2720748576117-LjSOdyfZRP6a8vwp9GnFzNdw
+export SLACK_TOKEN=<Insert your User Oauth Token Here>
 ```
 
 ## Commands
@@ -35,7 +42,6 @@ slackwire --help
 ```
 
 Below is a list of commands you can execute with Slackwire:
-
 
 
 1) To retrieve data from both CampusWire and Slack and store it locally:

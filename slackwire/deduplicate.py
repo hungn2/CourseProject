@@ -31,29 +31,31 @@ def _encode_documents(documents: List[str]) -> pd.DataFrame:
 
 def _get_best_cluster(documents: pd.DataFrame) -> List[int]:
     logging.info('Determing the best cluster...')
-    sse = {}
-    n_cluster_start = max(int(len(documents) / 100), 2)
-    n_cluster_end = max(int(len(documents) / 10), 3)
+    metrics = {}
+    n_cluster_start = max(int(len(documents) / 2), 3)
+    n_cluster_end = max(int(len(documents)), 3)
+    logging.info(f'Evaluating K between {n_cluster_start} and {n_cluster_end}')
 
     for k in range(n_cluster_start, n_cluster_end):
         #kmeans = KMeans(n_clusters=k, max_iter=9000).fit(documents)
-        kmeans = AgglomerativeClustering(
-            n_clusters=k, linkage='ward').fit(documents)
+        clusters = AgglomerativeClustering(
+            n_clusters=k, linkage='average').fit(documents)
         #kmeans = GaussianMixture(n_components=7).fit_predict(documents)
-        label = kmeans.labels_
+        label = clusters.labels_
         sil_coeff = silhouette_score(documents, label, metric='euclidean')
         chs = calinski_harabasz_score(documents, label)
         logging.debug(
-            'For k={}, The Silhouette Coefficient is {}, {}'.format(k, sil_coeff, chs))
-        sse[k] = sil_coeff
+            'For k={}, The SC and CHS is {}, {}'.format(k, sil_coeff, chs))
+        if sil_coeff > 0:
+            metrics[k] = chs
 
-    best_n_clusters = max(sse, key=sse.get)  # type: ignore
+    best_n_clusters = max(metrics, key=metrics.get)  # type: ignore
+    logging.info(f'Best K is {best_n_clusters} with {metrics[best_n_clusters]}')
+    clusters = AgglomerativeClustering(
+        n_clusters=best_n_clusters, linkage='average').fit(documents)
 
-    kmeans = AgglomerativeClustering(
-        n_clusters=best_n_clusters, linkage='ward').fit(documents)
-
-    labels = kmeans.labels_
-    return cast(List[int], kmeans.labels_)
+    labels = clusters.labels_
+    return cast(List[int], labels)
 
 
 def deduplicate_docs(documents: List[str]) -> List[str]:
