@@ -25,7 +25,7 @@ class CampusWireThread():
     body: str
 
     def __str__(self) -> str:
-        return 'THREAD: ' + self.title.replace('\n', ' ') + ' '
+        return 'THREAD: ' + self.title.replace('\n', ' ') + ' ' + self.body.replace('\n', ' ') + ' '
 
 
 @dataclass
