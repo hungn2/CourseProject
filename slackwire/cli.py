@@ -69,7 +69,7 @@ def search(only_slack: bool, only_campuswire: bool) -> None:
     cfg, dataset = get_dataset_paths(only_slack, only_campuswire)
 
     idx = metapy.index.make_inverted_index(cfg)
-    ranker = metapy.index.OkapiBM25()
+    ranker = load_ranker(cfg)
 
     # Rank index based on query
     query_doc = metapy.index.Document()
@@ -100,7 +100,7 @@ def search_eval(only_slack: bool, only_campuswire: bool) -> None:
     cfg, _ = get_dataset_paths(only_slack, only_campuswire)
 
     idx = metapy.index.make_inverted_index(cfg)
-    ranker = metapy.index.OkapiBM25()
+    ranker = load_ranker(cfg)
     ev = metapy.index.IREval(cfg)
 
     with open(cfg, 'r') as fin:
@@ -120,7 +120,7 @@ def search_eval(only_slack: bool, only_campuswire: bool) -> None:
     ndcg = 0.0
     num_queries = 0
 
-    logging.info('Running queries')
+    print('Running queries')
     with open(query_path) as query_file:
         for query_num, line in enumerate(query_file):
             query.content(line.strip())
@@ -129,8 +129,16 @@ def search_eval(only_slack: bool, only_campuswire: bool) -> None:
             num_queries+=1
     ndcg= ndcg / num_queries
             
-    logging.info("NDCG@{}: {}".format(top_k, ndcg))
-    logging.info("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
+    print("NDCG@{}: {}".format(top_k, ndcg))
+    print("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
+
+def load_ranker(cfg_file):
+    """
+    Use this function to return the Ranker object to evaluate, 
+    The parameter to this function, cfg_file, is the path to a
+    configuration file used to load the index.
+    """
+    return metapy.index.OkapiBM25(k1=1.05,b=0.91)
 
 if __name__ == '__main__':
     initialize_combined()

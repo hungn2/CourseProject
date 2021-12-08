@@ -1,13 +1,13 @@
-index = "idx"
-corpus = "line.toml"
-stop-words = "/Users/bjones325/Documents/MS work/CS410/CourseProject/slackwire/datasets/stopwords.txt"
-dataset = "slack"
-query-judgements = "qrels.txt"
+stop-words = "./slackwire/datasets/stopwords.txt"
 prefix = "./slackwire/datasets"
+dataset = "combined"
+corpus = "line.toml"
+query-judgements = "qrels.txt"
+index = "idx"
 [query-runner]
 	query-id-start = 1
 	query-path = "queries.txt"
 [[analyzers]]
 	filter = "default-unigram-chain"
-	ngram = 1
 	method = "ngram-word"
+	ngram = 1

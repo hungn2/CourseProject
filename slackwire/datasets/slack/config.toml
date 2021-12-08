@@ -5,7 +5,7 @@ dataset = "slack"
 corpus = "line.toml"
 index = "idx"
 
-query-judgements = "qrels.txt"
+query-judgements = "./slackwire/datasets/slack/qrels.txt"
 
 [[analyzers]]
 method = "ngram-word"
@@ -13,5 +13,5 @@ ngram = 1
 filter = "default-unigram-chain"
 
 [query-runner]
-query-path = "queries.txt"
+query-path = "./slackwire/datasets/slack/queries.txt"
 query-id-start = 1
