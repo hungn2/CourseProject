@@ -4,4 +4,3 @@ slackwire/combined_idx/
 slackwire/__pycache__/
 *.egg-info
 *.DS_store
-*.dat
