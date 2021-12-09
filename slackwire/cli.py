@@ -86,7 +86,9 @@ def search(only_slack: bool, only_campuswire: bool) -> None:
     with open(dataset, "r", encoding='utf-8') as f:
         contents = f.readlines()
         for relevant_doc in relevant_docs:
-            print("DOC ID: " + str(relevant_doc) + "\n" + contents[relevant_doc].replace("REPLY:", "\nREPLY:"))
+            print("DOC ID: " + str(relevant_doc))
+            print(contents[relevant_doc].replace("REPLY:", "\nREPLY:"))
+            print('-----------------')
 
 @slackwire.command(help='Evaluate queries in Slack and/or Campuswire.')
 @click.option('--only-slack',
