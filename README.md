@@ -4,6 +4,8 @@
 
 This project allows users to query for relevant documents in Slack and/or CampusWire for CS 410. The search results can also be evaluated based on the Cranfield Evaluation Methodology.
 
+Link to Video Demo: https://youtu.be/XS7kyNheJMg
+
 ### Installation
 
 Install the package and it's dependencies by entering the following command from the repo root. All requirements to execute the app are located within the package. External data files may be generated if requested.
