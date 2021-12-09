@@ -5,6 +5,8 @@ from slackwire.deduplicate import deduplicate_docs
 import math
 import sys
 import time
+import shutil
+import os
 import metapy
 import pytoml
 import logging
@@ -68,14 +70,18 @@ def search(only_slack: bool, only_campuswire: bool) -> None:
     """Search Slack and/or Campuswire for specific topics."""
     query = click.prompt('Enter your query', type=str)
     cfg, dataset = get_dataset_paths(only_slack, only_campuswire)
-
+    shutil.rmtree('idx', ignore_errors=True)
     idx = metapy.index.make_inverted_index(cfg)
     ranker = load_ranker(cfg)
+
+    
 
     # Rank index based on query
     query_doc = metapy.index.Document()
     query_doc.content(query)
     results = ranker.score(idx, query_doc, 10)
+
+    shutil.rmtree('idx', ignore_errors=True)
 
     # Collect relevant documents
     relevant_docs = []

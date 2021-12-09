@@ -100,7 +100,7 @@ class CampusWire():
                 url, headers=self.headers).content)
 
             messages = [CampusWireThread(reply.get('id'), reply.get(
-                'title'), reply.get('body')) for reply in response]
+                'title', ''), reply.get('body', '')) for reply in response]
 
             yield from messages
 
