@@ -48,17 +48,17 @@ Below is a list of commands you can execute with Slackwire:
 
 1) To retrieve data from both CampusWire and Slack and store it locally:
 ```bash
-slackwire initialize_combined
+slackwire initialize-combined
 ```
 
 2) To retrieve data from Slack only and store it locally:
 ```bash
-slackwire initialize_slack
+slackwire initialize-slack
 ```
 
 3) To retrieve data from CampusWire only and store it locally:
 ```bash
-slackwire initialize_campuswire
+slackwire initialize-campuswire
 ```
 
 4) To query for relevant threads in both databases, the Slack database only, or the CampusWire database only:
@@ -73,7 +73,7 @@ You will then be prompted for your query.
 
 5) To evaluate queries based on the *queries.txt and *qrels.txt files:
 ```bash
-slackwire search_eval
-slackwire search_eval --only-slack
-slackwire search_eval --only-campuswire
+slackwire search-eval
+slackwire search-eval --only-slack
+slackwire search-eval --only-campuswire
 ```
